@@ -1,0 +1,49 @@
+require('dotenv').config()
+const passport = require('passport')
+const GoogleStrategy= require('passport-google-oauth20').Strategy;
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+
+
+passport.use(
+   new GoogleStrategy(
+    {
+        clientID : process.env.GOOGLE_CLIENT_ID,
+        clientSecret : process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL : '/auth/google/callback',
+        scope: ['profile,email'],
+    },
+    async ( done, profile) =>{
+       try {
+        let user = await User.findOne({email:profile.email[0].value});
+
+        if (!user){
+            user = new User({
+                email: profile.email[0].value,
+                name: profile.displayName,
+                password:null,
+                phoneNumber:null,
+                role: "user"
+            })
+            await user.save();
+        }
+
+        const jwt = jwt.sign({id:user._id,email:user.email},process.env.JWT_SECRET,{expiresIn: "7d"})
+
+        return done(null,{user,token})
+        }catch(error){
+            return  done(error,null)
+        }
+
+
+    }
+   )
+
+)
+passport.serializeUser((user,done) =>{
+    done(null,user)
+})
+
+passport.deserializeUser((user, done) => {
+    done(null, user);
+  });
