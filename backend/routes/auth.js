@@ -16,25 +16,29 @@ router.post('/signup',async (req,res)=>{
 
     const user = await User.findOne({ email });
     if (user){
-        res.status(411).json({ message : "Email already Exists!"})
+        res.status(409).json({ message : "Email already Exists!"})
     }
     else{
        const user1 = new User({name:name,email:email,phoneNumber:phoneNumber,password:hashedPass})
         await user1.save();
-        res.status(211).json({message: "User Created Successfully!"})
+        const token = jwt.sign({ id: user1._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        res.status(201).json({ message: "User Created Successfully!", token });
+        console.log("USer created")
     }
 }catch(error){
     res.status(500).json({ message: "Internal Server Error", error: error.message });
 }
 })
 
-router.get('/login',async (req,res)=>{
+router.post('/login',async (req,res)=>{
    try{
     const {emailorPhone,password} = req.body;
-
-    const user  = User.findOne({
-        $or:[ {email :emailorPhone, phoneNumber : emailorPhone}],
-    })
+    if (!emailorPhone || !password) {
+        return res.status(400).json({ message: "Email/Phone and password are required!" });
+      }
+     const user = await User.findOne({
+      $or: [{ email: emailorPhone }, { phoneNumber: emailorPhone }],
+    });
 
     if (!user){
         return res.status(404).json({message : 'User not  FOund'})
