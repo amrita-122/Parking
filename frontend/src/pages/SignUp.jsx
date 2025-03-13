@@ -6,6 +6,22 @@ import { Subheading } from "../components/SubHeading";
 import { Heading } from "../components/heading";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
+
+const handleGoogleLogin = async (response) => {
+  try {
+    const res = await axios.post("http://localhost:3000/api/auth/google", {
+      token: response.credential
+    });
+
+    localStorage.setItem("token", res.data.token);
+    window.location.href = "/";
+  } catch (error) {
+    console.error("Google Login Error:", error.response?.data || error.message);
+    alert("Signup Failed",error.message)
+  }
+};
+
 export const SignUp = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -62,29 +78,18 @@ export const SignUp = () => {
                     }
                   );
                   localStorage.setItem("token", response.data.token);
-                  console.log(response.data.token)
                   navigate("/");
                 } catch (error) {
-                  console.error(
-                    "Signup Error:",
-                    error.response?.data || error.message
-                  );
                   alert(
                     "Signup failed! " +
-                      (error.response?.data?.message || "Please try again.")
+                    (error.response?.data?.message || "Please try again.")
                   );
                 }
               }}
             />
-            <Button
-              label={"Sign Up with Google"}
-              onClick={async () => {
-                const response = await axios.post(
-                  "http://localhost:3000/api/auth/google"
-                );
-                localStorage.setItem("token", response.data.token);
-                //when user logs out = localstorage.removeitem("token")
-              }}
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={() => {}}
             />
           </div>
           <BottomWarning
