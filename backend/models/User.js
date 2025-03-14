@@ -29,7 +29,11 @@ const UserSchema = new mongoose.Schema({
             },
             message: props => `${props.value} is not a valid Phone Number!`
         }
-    }
+    },
+    cars: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Car" // Reference to Car Schema
+    }]
 });
 
 module.exports = mongoose.model("User", UserSchema);
