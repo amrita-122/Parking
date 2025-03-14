@@ -4,4 +4,3 @@
 
 Name - Amrita Sood, 300207014
 Name - Harguneet SIngh, 300200730
-Name - Asmita Attri, 300206573
