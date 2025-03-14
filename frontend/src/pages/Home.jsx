@@ -1,8 +1,11 @@
-import React from 'react'
+// src/pages/Dashboard.jsx
+import { MainLayout } from "../layouts/MainLayout";
 
 export const Home = () => {
   return (
-    <div>Home</div>
-  )
-}
-
+    <MainLayout>
+      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+      {/* Your dashboard content */}
+    </MainLayout>
+  );
+};
