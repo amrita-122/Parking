@@ -53,21 +53,32 @@ const [name, setName] = useState("");
           />
           <div className="pt-4">
             <Button
-              label={"Sign Up"}
-            />
-            <Button
   label={"Send OTP"}
   onClick={
     async () => {
+      try{
     const response = await axios.post(
       "http://localhost:3000/api/auth/sendotp",
       {
+        name,
+        password,
+        phoneNumber:number,
         email
       }
     );
     console.log(response)
     setShowDialog(true)
-  }}
+  }catch(error){
+    console.error(
+      "Signup Error:",
+      error.response?.data || error.message
+  );
+  alert(
+   "Signup failed! " +
+  (error.response?.data?.message || "Please try again.")
+  );
+  }
+  } }
 />
 <Button
   label={"Sign Up with Google"}
