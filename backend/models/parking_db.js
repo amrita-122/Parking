@@ -1,0 +1,99 @@
+const mongoose = require("mongoose");
+
+// Parking Spot Schema
+const ParkingSpotSchema = new mongoose.Schema({
+    lotNumber: {
+        type: String,
+        required: true
+    },
+    spotNumber: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    isAvailable: {
+        type: Boolean,
+        default: true
+    },
+    reservedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null
+    },
+    occupiedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null
+    }
+});
+
+// Reservation Schema
+const ReservationSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    spotId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ParkingSpot",
+        required: true
+    },
+    startTime: {
+        type: Date,
+        required: true
+    },
+    endTime: {
+        type: Date,
+        required: true
+    },
+    status: {
+        type: String,
+        enum: ["reserved", "checked-in", "completed", "cancelled"],
+        default: "reserved"
+    }
+});
+
+// Check-In Schema
+const CheckInSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    reservationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Reservation",
+        required: true
+    },
+    checkInTime: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Check-Out Schema
+const CheckOutSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    reservationId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Reservation",
+        required: true
+    },
+    checkOutTime: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+// Exporting Models
+module.exports = {
+    ParkingSpot: mongoose.model("ParkingSpot", ParkingSpotSchema),
+    Reservation: mongoose.model("Reservation", ReservationSchema),
+    CheckIn: mongoose.model("CheckIn", CheckInSchema),
+    CheckOut: mongoose.model("CheckOut", CheckOutSchema)
+};

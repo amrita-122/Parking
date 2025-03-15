@@ -10,16 +10,16 @@ passport.use(
     {
         clientID : process.env.GOOGLE_CLIENT_ID,
         clientSecret : process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL : '/auth/google/callback',
-        scope: ['profile,email'],
+        callbackURL : 'api/auth/google/callback',
+        scope: ['profile','email'],
     },
     async ( done, profile) =>{
        try {
-        let user = await User.findOne({email:profile.email[0].value});
+        let user = await User.findOne({email:profile.emails[0].value});
 
         if (!user){
             user = new User({
-                email: profile.email[0].value,
+                email: profile.emails[0].value,
                 name: profile.displayName,
                 password:null,
                 phoneNumber:null,
@@ -28,10 +28,13 @@ passport.use(
             await user.save();
         }
 
-        const jwt = jwt.sign({id:user._id,email:user.email},process.env.JWT_SECRET,{expiresIn: "7d"})
+        const token = jwt.sign(
+            { id: user._id, email: user.email },
+            process.env.JWT_SECRET,
+          );
 
-        return done(null,{user,token})
-        }catch(error){
+          return done(null, { ...user.toObject(), token });
+            }catch(error){
             return  done(error,null)
         }
 

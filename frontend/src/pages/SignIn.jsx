@@ -6,6 +6,7 @@ import { Subheading } from "../components/SubHeading";
 import { Heading } from "../components/heading";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { GoogleLogin } from "@react-oauth/google";
 
 const handleSignIn = (email, pass, navigate) => {
   return async () => {
@@ -27,7 +28,19 @@ const handleSignIn = (email, pass, navigate) => {
   };
 };
 
+const handleGoogleLogin =async (response) =>{
+  try{
+    const res  = await axios.post(("http://localhost:3000/api/auth/google"),{
+    token:response.credential,
+  })
+  localStorage.setItem("token", res.data.token);
+    window.location.href = "/";
 
+}catch(error){
+  console.error("Google Login Error:", error.response?.data || error.message);
+    alert("Login Failed",error.message)
+}
+}
 export const SignIn = () => {
   const navigate = useNavigate(); // to navigate after login
   const [email, setEmail] = useState("");
@@ -58,6 +71,7 @@ export const SignIn = () => {
               label={"Sign In"}
               onClick={() => handleSignIn(email, pass, navigate)()} // Fixing the invocation
             />
+            <GoogleLogin onSuccess={handleGoogleLogin}/>
           </div>
           <BottomWarning
             label={"Don't have an account?"}

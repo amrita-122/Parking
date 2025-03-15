@@ -6,13 +6,34 @@ import { Subheading } from "../components/SubHeading";
 import { Heading } from "../components/heading";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
+import { DialogBox } from "../components/DialogBox";
+
+const handleGoogleLogin = async (response) => {
+  try {
+    const res = await axios.post("http://localhost:3000/api/auth/google", {
+      token: response.credential
+    });
+
+    localStorage.setItem("token", res.data.token);
+    window.location.href = "/";
+  } catch (error) {
+    console.error("Google Login Error:", error.response?.data || error.message);
+    alert("Signup Failed",error.message)
+  }
+};
+
+
+
+
 export const SignUp = () => {
-  const navigate = useNavigate();
-  const [name, setName] = useState("");
+
+const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [number, setNumber] = useState("");
-
+  const [showDialog, setShowDialog] = useState(false)
+  const [otp, setOtp] = useState("");
   return (
     <div className="bg-gray-100 h-screen flex justify-center">
       <div className="flex flex-col justify-center">
@@ -48,52 +69,52 @@ export const SignUp = () => {
             }}
           />
           <div className="pt-4">
-            <Button
-              label={"Sign Up"}
-              onClick={async () => {
-                try {
-                  const response = await axios.post(
-                    "http://localhost:3000/api/auth/signup",
-                    {
-                      name,
-                      email,
-                      phoneNumber: number,
-                      password,
-                    }
-                  );
-                  localStorage.setItem("token", response.data.token);
-                  console.log(response.data.token)
-                  navigate("/");
-                } catch (error) {
-                  console.error(
-                    "Signup Error:",
-                    error.response?.data || error.message
-                  );
-                  alert(
-                    "Signup failed! " +
-                      (error.response?.data?.message || "Please try again.")
-                  );
-                }
-              }}
+
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={() => {}}
             />
             <Button
-              label={"Sign Up with Google"}
-              onClick={async () => {
-                const response = await axios.post(
-                  "http://localhost:3000/api/auth/google"
-                );
-                localStorage.setItem("token", response.data.token);
-                //when user logs out = localstorage.removeitem("token")
-              }}
-            />
+  label={"Send OTP"}
+  onClick={
+    async () => {
+      try{
+    const response = await axios.post(
+      "http://localhost:3000/api/auth/sendotp",
+      {
+        name,
+        password,
+        phoneNumber:number,
+        email
+      }
+    );
+    console.log(response)
+    setShowDialog(true)
+  }catch(error){
+    console.error(
+      "Signup Error:",
+      error.response?.data || error.message
+  );
+  alert(
+   "Signup failed! " +
+  (error.response?.data?.message || "Please try again.")
+  );
+  }
+  } }
+/>
           </div>
           <BottomWarning
             label={"Already have an account?"}
             buttonText={"Sign In"}
             to={"/SignIn"}
           />
-        </div>
+          <DialogBox show={showDialog} onClose={() => setShowDialog(false)} otp={otp} setOtp={setOtp}  name={name}
+          email={email}
+          number={number}
+          password={password} />
+</div>
       </div>
     </div>
+<<<<<<< frontend/src/pages/SignUp.jsx
   );
 };
