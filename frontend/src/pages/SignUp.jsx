@@ -5,7 +5,24 @@ import { InputBox } from "../components/InputBox";
 import { Subheading } from "../components/SubHeading";
 import { Heading } from "../components/heading";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 import { DialogBox } from "../components/DialogBox";
+
+const handleGoogleLogin = async (response) => {
+  try {
+    const res = await axios.post("http://localhost:3000/api/auth/google", {
+      token: response.credential
+    });
+
+    localStorage.setItem("token", res.data.token);
+    window.location.href = "/";
+  } catch (error) {
+    console.error("Google Login Error:", error.response?.data || error.message);
+    alert("Signup Failed",error.message)
+  }
+};
+
 
 
 
@@ -52,6 +69,11 @@ const [name, setName] = useState("");
             }}
           />
           <div className="pt-4">
+
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={() => {}}
+            />
             <Button
   label={"Send OTP"}
   onClick={
@@ -80,15 +102,6 @@ const [name, setName] = useState("");
   }
   } }
 />
-<Button
-  label={"Sign Up with Google"}
-  onClick={async () => {
-    const response = await axios.post(
-      "http://localhost:3000/api/auth/google"
-    );
-    localStorage.setItem("token", response.data.token);
-  }}
-/>
           </div>
           <BottomWarning
             label={"Already have an account?"}
@@ -102,4 +115,6 @@ const [name, setName] = useState("");
 </div>
       </div>
     </div>
-  )}
+<<<<<<< frontend/src/pages/SignUp.jsx
+  );
+};
