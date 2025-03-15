@@ -115,6 +115,5 @@ const [name, setName] = useState("");
 </div>
       </div>
     </div>
-<<<<<<< frontend/src/pages/SignUp.jsx
   );
 };
