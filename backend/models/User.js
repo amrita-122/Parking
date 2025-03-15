@@ -31,21 +31,12 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  phoneNumber: {
-    type: String,
-    required: function () {
-      return this.provider ? false : true;
-    },
-    unique: true,
-    validate: {
-      validator: function (v) {
-        return /^[0-9]{10}$/.test(v);
-      },
-      message: (props) => `${props.value} is not a valid Phone Number!`,
-    },
+
     phoneNumber: {
         type: String,
-        required: true,
+        required: function () {
+      return this.provider ? false : true;
+    },
         unique: true,
         validate: {
             validator: function(v) {
@@ -56,7 +47,7 @@ const UserSchema = new mongoose.Schema({
     },
     cars: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Car" // Reference to Car Schema
+        ref: "Car"
     }]
 });
 
