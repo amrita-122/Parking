@@ -24,7 +24,16 @@ const ParkingSpotSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         default: null
+    },
+    lat: {
+        type: Number,
+        required: true
+    },
+    lng: {
+        type: Number,
+        required: true
     }
+
 });
 
 // Reservation Schema
@@ -90,7 +99,6 @@ const CheckOutSchema = new mongoose.Schema({
     }
 });
 
-// Exporting Models
 module.exports = {
     ParkingSpot: mongoose.model("ParkingSpot", ParkingSpotSchema),
     Reservation: mongoose.model("Reservation", ReservationSchema),
