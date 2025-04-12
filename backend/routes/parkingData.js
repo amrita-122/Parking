@@ -58,10 +58,10 @@ router.post("/reserve", authenticate, async (req, res) => {
   try {
     const { spotId, startTime, endTime } = req.body;
     const userId = req.user.id;
-     const spot = await ParkingSpot.findById(spotId);
-     if (!spot || !spot.isAvailable) {
-       return res.status(400).json({ message: "Spot is not available!" });
-     }
+    const spot = await ParkingSpot.findById(spotId);
+    if (!spot || !spot.isAvailable) {
+      return res.status(400).json({ message: "Spot is not available!" });
+    }
 
     const now = new Date();
     const maxReserveTime = new Date(now.getTime() + 20 * 60 * 1000);
@@ -71,17 +71,17 @@ router.post("/reserve", authenticate, async (req, res) => {
       });
     }
     const hasPaid = await Payment.findOne({
-        userId,
-        amount: { $gt: 0 },
-        status: "completed",
-      }).sort({ timestamp: -1 }); // <-- ensure latest one is considered
-      
+      userId,
+      amount: { $gt: 0 },
+      status: "completed",
+    }).sort({ timestamp: -1 }); // <-- ensure latest one is considered
+
     if (!hasPaid) {
       return res.status(403).json({
         message: "Please complete a payment before reserving.",
       });
     }
-   
+
     // Create reservation
     const reservation = new Reservation({
       userId,
@@ -154,50 +154,72 @@ router.post("/checkout", async (req, res) => {
 
 module.exports = router;
 
-
 router.get("/nearest", authenticate, async (req, res) => {
-    const { lat, lng } = req.query;
-  
-    if (!lat || !lng) {
-      return res.status(400).json({ message: "Missing coordinates" });
-    }
-  
-    const spots = await ParkingSpot.find({ isAvailable: true });
-  
-    if (!spots.length) {
-      return res.status(404).json({ message: "No spots available" });
-    }
-  
-    const userLat = parseFloat(lat);
-    const userLng = parseFloat(lng);
-  
-    const nearest = spots.reduce((closest, spot) => {
-      const d1 = Math.sqrt((spot.lat - userLat) ** 2 + (spot.lng - userLng) ** 2);
-      const d2 = Math.sqrt((closest.lat - userLat) ** 2 + (closest.lng - userLng) ** 2);
-      return d1 < d2 ? spot : closest;
-    });
-  
-    res.json(nearest);
+  const { lat, lng } = req.query;
+
+  if (!lat || !lng) {
+    return res.status(400).json({ message: "Missing coordinates" });
+  }
+
+  const spots = await ParkingSpot.find({ isAvailable: true });
+
+  if (!spots.length) {
+    return res.status(404).json({ message: "No spots available" });
+  }
+
+  const userLat = parseFloat(lat);
+  const userLng = parseFloat(lng);
+
+  const nearest = spots.reduce((closest, spot) => {
+    const d1 = Math.sqrt((spot.lat - userLat) ** 2 + (spot.lng - userLng) ** 2);
+    const d2 = Math.sqrt(
+      (closest.lat - userLat) ** 2 + (closest.lng - userLng) ** 2
+    );
+    return d1 < d2 ? spot : closest;
   });
 
-  router.get("/nearby", async (req, res) => {
-    const { lat, lng, radius = 0.5 } = req.query; // radius in KM
-    const latNum = parseFloat(lat);
-    const lngNum = parseFloat(lng);
-  
-    if (!latNum || !lngNum) {
-      return res.status(400).json({ message: "Missing lat/lng" });
-    }
-  
-    // Convert radius to degrees roughly (1km ≈ 0.009 degrees)
-    const delta = parseFloat(radius) * 0.009;
-  
-    const spots = await ParkingSpot.find({
-      lat: { $gte: latNum - delta, $lte: latNum + delta },
-      lng: { $gte: lngNum - delta, $lte: lngNum + delta },
-    });
-  
-    res.json(spots);
+  res.json(nearest);
+});
+
+router.get("/nearby", async (req, res) => {
+  const { lat, lng, radius = 0.5 } = req.query; // radius in KM
+  const latNum = parseFloat(lat);
+  const lngNum = parseFloat(lng);
+
+  if (!latNum || !lngNum) {
+    return res.status(400).json({ message: "Missing lat/lng" });
+  }
+
+  // Convert radius to degrees roughly (1km ≈ 0.009 degrees)
+  const delta = parseFloat(radius) * 0.009;
+
+  const spots = await ParkingSpot.find({
+    lat: { $gte: latNum - delta, $lte: latNum + delta },
+    lng: { $gte: lngNum - delta, $lte: lngNum + delta },
   });
-  
-  
+
+  res.json(spots);
+});
+
+router.post("/update-status", async (req, res) => {
+  const { spotNumber, isAvailable } = req.body;
+
+  if (!spotNumber || typeof isAvailable !== "boolean") {
+    return res.status(400).json({ message: "Invalid data" });
+  }
+
+  try {
+    const spot = await ParkingSpot.findOneAndUpdate(
+      { spotNumber },
+      { isAvailable },
+      { new: true }
+    );
+    if (!spot) {
+      return res.status(404).json({ message: "Spot not found" });
+    }
+
+    res.json({ success: true, updated: spot });
+  } catch (error) {
+    res.status(500).json({ message: "Update failed", error: error.message });
+  }
+});
